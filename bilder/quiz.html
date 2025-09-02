@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Quiz "Montage und Instandhaltung von PV-Anlagen"</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+    .hidden { display: none; }
+    h1, h2 { text-align: center; }
+    label { display: block; margin: 5px 0; }
+    .question { margin-bottom: 20px; }
+    button { margin: 10px; padding: 10px 20px; font-size: 16px; }
+    #logo { max-width: 150px; margin: 20px auto; display: block; }
+    .result { font-size: 20px; text-align: center; margin-top: 30px; }
+    @media print {
+      button, .nav { display: none !important; }
+    }
+ .ergebnis-box {
+  border: 3px solid #000;
+  padding: 30px;
+  margin-top: 20px;
+  text-align: left;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: #fff;
+}
+
+
+
+ </style>
+</head>
+<body>
+
+  <!-- STARTSEITE -->
+  <div id="start-screen">
+    <img id="logo" src="logo.png" alt="Firmenlogo">
+    <h1>Willkommen zum Quiz: "Montage und Instandhaltung von PV-Anlagen"</h1>
+    <p>- Das Quiz besteht aus 6 Fragen, es können auch mehrere Antworten richtig sein.</p>
+<p>- Bestanden ist dieses Quiz mit mindestens 5 richtig beantworteten Fragen.</p>
+<p>- Sollten Sie nicht bestehen, müssen Sie von vorne beginnen.</p>
+<p>- Am Ende drucken Sie bitte Ihren Schulungsnachweis aus und übergeben diesen unterschrieben Ihren Vorgesetzten.</p>
+</br>
+<p>Bitte geben Sie Ihren Namen und das aktuelle Datum ein, bevor Sie mit dem Quiz starten.</p>
+</br>
+
+    <label>Datum:
+      <input type="date" id="input-datum" required>
+    </label></br>
+    <label>Name:
+      <input type="text" id="input-name" required>
+    </label></br>
+    <button onclick="startQuiz()">Quiz starten</button>
+  </div>
+
+  <!-- FRAGEN -->
+  <div id="quiz-screen" class="hidden">
+<img id="logo" src="logo.png" alt="Firmenlogo">
+    <div id="frage-container"></div>
+    <div class="nav"></br>
+      <button onclick="zurueckZumStart()">⬅ Zurück zum Start</button>
+      <button onclick="naechsteFrage()">Weiter ➡</button>
+    </div>
+  </div>
+
+  <!-- ERGEBNIS -->
+  <div id="result-screen" class="hidden">
+<div class="ergebnis-box"> 
+    <img id="logo" src="logo.png" alt="Firmenlogo">
+    <h1>Ergebnis</h1>
+<h1>&</h1>
+<h1>Schulungsnachweis</h1>
+<h1>Schulung "Montage und Instandhaltung von PV-Anlagen"</h1>
+<h1>Der Beschäftigte hat an der Schulung und an einer Kontrollprüfung teilgenommen.</h1>
+
+    <p><strong>Name:</strong> <span id="ausgabe-name"></span></p>
+    <p><strong>Datum:</strong> <span id="ausgabe-datum"></span></p>
+    <p><strong>Testergebnis:</strong> <span id="ausgabe-ergebnis"></span></p>
+    <div class="result">
+</br>
+      <p>_________________________<br>Unterschrift</p>
+ </div>
+    </div>
+    <button onclick="window.print()">🖨 Ergebnis drucken</button>
+    <button onclick="location.reload()">🔁 Neu starten</button>
+    <button onclick="window.location.href='index.html'">Zurück zum Skript</button>
+  </div>
+
+  <script>
+    // ================================
+    // QUIZ-FRAGEN DEFINIEREN
+    // ================================
+        const fragen = [
+      {
+        frage: "Welche organisatorischen Maßnahmen sollten vor Beginn der Montage oder Instandhaltung von PV-Anlagen getroffen werden, um die Sicherheit der Mitarbeiter zu gewährleisten?",
+        antworten: ["Örtliche Gegebenheiten prüfen und erforderliche Schutzmaßnahmen bestimmen.", "Jedes Projekt ist gleich, daher spare ich mir die Zeit einer Planung.", "Prüfung erforderlicher Anschlagpunkte."],
+        richtig: [0, 2]
+      },
+      {
+        frage: "TOP steht für?",
+        antworten: ["Total Ordentliche Planung", "TOP = SPITZE", "Technisch Organisatorisch Persönlich"],
+        richtig: [2]
+      },
+      {
+        frage: "Ab welcher Höhe besteht bei Arbeiten eine potenzielle Absturzgefährung?",
+        antworten: ["0,5m", "1m", "5m"],
+        richtig: [1]
+      },
+      {
+        frage: "Technische Schutzmaßnahmen. Was ist korrekt?",
+        antworten: ["Seitenschutz vor Auffangeinrichtung", "Auffangvorrichtung vor Seitenschutz", "PSA vor Seitenschutz und/oder Auffangvorrichtung"],
+        richtig: [0]
+      },
+      {
+        frage: "Bei Arbeiten bei Hitze und starkter Sonneneinstrahlung werden welche Schutzmaßnahmen empfohlen?",
+        antworten: ["Lichtdichte Kleidung, Kopfbedeckung sowie Haut- und Augenschutz verwenden.", "Ausreichend trinken.", "Zusätzliche Pausen einlegen."],
+        richtig: [0, 1, 2]
+      },
+      {
+        frage: "Auf was ist bei Reinigungsarbeiten zu achten?",
+        antworten: ["Herstellerangaben bezüglich der anzuwendenen Reinigungstechnik.", "Mögliche Durchsturzgefährdung bei verdeckten GEfahrenstellen durch Schnee.", "Ich muss auf nichts achten, da die PV-Anlage für die Arbeiten immer korrekt ausgeführt sind."],
+        richtig: [0, 1]
+      }
+    ];
+
+
+    // ================================
+    // VARIABLEN
+    // ================================
+    let aktuelleFrage = 0;
+    let benutzerAntworten = [];
+    let name = "";
+    let datum = "";
+
+    // ================================
+    // STARTEN
+    // ================================
+    function startQuiz() {
+      name = document.getElementById("input-name").value.trim();
+      datum = document.getElementById("input-datum").value;
+
+      if (!name || !datum) {
+        alert("Bitte Name und Datum eingeben.");
+        return;
+      }
+
+      document.getElementById("start-screen").classList.add("hidden");
+      document.getElementById("quiz-screen").classList.remove("hidden");
+      zeigeFrage();
+    }
+
+    function zurueckZumStart() {
+      if (confirm("Willst du wirklich abbrechen und zum Start zurückkehren?")) {
+        location.reload();
+      }
+    }
+
+    // ================================
+    // FRAGE ZEIGEN
+    // ================================
+    function zeigeFrage() {
+      const frageObj = fragen[aktuelleFrage];
+      const container = document.getElementById("frage-container");
+      container.innerHTML = `
+        <h2>Frage ${aktuelleFrage + 1} von ${fragen.length}</h2>
+        <p class="question">${frageObj.frage}</p>
+        ${frageObj.antworten.map((antwort, i) => `
+          <label>
+            <input type="checkbox" name="antwort" value="${i}">
+            ${antwort}
+          </label>
+        `).join("")}
+      `;
+    }
+
+    // ================================
+    // NÄCHSTE FRAGE ODER AUSWERTUNG
+    // ================================
+    function naechsteFrage() {
+      const auswahl = Array.from(document.querySelectorAll('input[name="antwort"]:checked')).map(el => parseInt(el.value));
+      benutzerAntworten[aktuelleFrage] = auswahl;
+
+      aktuelleFrage++;
+
+      if (aktuelleFrage < fragen.length) {
+        zeigeFrage();
+      } else {
+        auswertung();
+      }
+    }
+
+    // ================================
+    // AUSWERTUNG
+    // ================================
+    function auswertung() {
+      document.getElementById("quiz-screen").classList.add("hidden");
+      document.getElementById("result-screen").classList.remove("hidden");
+
+      let punkte = 0;
+
+      fragen.forEach((frage, index) => {
+        const richtig = frage.richtig.sort().join();
+        const gegeben = (benutzerAntworten[index] || []).sort().join();
+        if (richtig === gegeben) {
+          punkte++;
+        }
+      });
+
+      const bestanden = punkte >= 5;
+
+      document.getElementById("ausgabe-name").textContent = name;
+      document.getElementById("ausgabe-datum").textContent = datum;
+      document.getElementById("ausgabe-ergebnis").textContent = bestanden
+        ? `✅ Bestanden (${punkte} von ${fragen.length} richtig)`
+        : `❌ Leider nicht bestanden (${punkte} von ${fragen.length} richtig)`;
+    }
+  </script>
+</body>
+</html>
